@@ -33,6 +33,9 @@ public class MultiSheetPeopleReviewServiceImpl implements MultiSheetPeopleReview
                 updateDate(sheet);
                 updateTitle(sheet, sheetName);
                 populateData(sheet, dataList, 6);
+
+                // ✅ Appliquer la mise en forme des en-têtes après avoir rempli les données
+                applyHeaderFormatting(sheet);
             }
 
             return writeWorkbookToByteArray(workbook);
@@ -76,7 +79,6 @@ public class MultiSheetPeopleReviewServiceImpl implements MultiSheetPeopleReview
     }
 
     private void copyCell(Workbook srcWorkbook, Workbook destWorkbook, Cell srcCell, Cell destCell) {
-        // ✅ Cloner le style dans le bon workbook
         CellStyle newStyle = cloneCellStyle(srcCell.getCellStyle(), srcWorkbook, destWorkbook);
         destCell.setCellStyle(newStyle);
 
@@ -94,25 +96,19 @@ public class MultiSheetPeopleReviewServiceImpl implements MultiSheetPeopleReview
                 destCell.setCellFormula(srcCell.getCellFormula());
                 break;
             case BLANK:
-                // Rien à faire
                 break;
             default:
                 break;
         }
     }
 
-    // ✅ Méthode corrigée : on passe srcWorkbook en paramètre
     private CellStyle cloneCellStyle(CellStyle srcStyle, Workbook srcWorkbook, Workbook destWorkbook) {
         CellStyle newStyle = destWorkbook.createCellStyle();
         newStyle.cloneStyleFrom(srcStyle);
 
-        // Gérer la police (font) si nécessaire
         if (srcStyle instanceof XSSFCellStyle xssfSrcStyle) {
-            // Récupérer la font du workbook source
             Font srcFont = srcWorkbook.getFontAt(xssfSrcStyle.getFontIndexAsInt());
             Font newFont = destWorkbook.createFont();
-
-            // Copier les propriétés de la font
             newFont.setFontHeight(srcFont.getFontHeight());
             newFont.setFontName(srcFont.getFontName());
             newFont.setBold(srcFont.getBold());
@@ -120,7 +116,6 @@ public class MultiSheetPeopleReviewServiceImpl implements MultiSheetPeopleReview
             newFont.setColor(srcFont.getColor());
             newFont.setUnderline(srcFont.getUnderline());
             newFont.setStrikeout(srcFont.getStrikeout());
-
             newStyle.setFont(newFont);
         }
 
@@ -149,7 +144,7 @@ public class MultiSheetPeopleReviewServiceImpl implements MultiSheetPeopleReview
     }
 
     private void populateData(Sheet sheet, List<PeopleReviewData> dataList, int startRowExcel) {
-        int startIndex = startRowExcel - 1; // Excel ligne 6 → index 5
+        int startIndex = startRowExcel - 1;
 
         // Nettoyer les anciennes données
         for (int i = sheet.getLastRowNum(); i >= startIndex; i--) {
@@ -181,6 +176,36 @@ public class MultiSheetPeopleReviewServiceImpl implements MultiSheetPeopleReview
             row.createCell(13).setCellValue(data.getCommentaires());
 
             currentRow++;
+        }
+    }
+
+    // ✅ Méthode pour appliquer la mise en forme des en-têtes
+    private void applyHeaderFormatting(Sheet sheet) {
+        // Auto-size toutes les colonnes (A à N = 0 à 13)
+        for (int i = 0; i < 14; i++) {
+            sheet.autoSizeColumn(i);
+            // Limiter la largeur maximale à 50 caractères pour éviter les colonnes trop larges
+            int maxWidth = 256 * 50; // 50 caractères
+            if (sheet.getColumnWidth(i) > maxWidth) {
+                sheet.setColumnWidth(i, maxWidth);
+            }
+        }
+
+        // Ajuster la hauteur des lignes d'en-tête si nécessaire
+        // Ligne 3 (index 2) - titre principal
+        Row titleRow = sheet.getRow(2);
+        if (titleRow != null) {
+            titleRow.setHeightInPoints(30); // Hauteur personnalisée pour le titre
+        }
+
+        // Lignes 4 et 5 (indices 3 et 4) - headers
+        Row headerRow1 = sheet.getRow(3);
+        Row headerRow2 = sheet.getRow(4);
+        if (headerRow1 != null) {
+            headerRow1.setHeightInPoints(40); // Hauteur pour les headers principaux
+        }
+        if (headerRow2 != null) {
+            headerRow2.setHeightInPoints(30); // Hauteur pour les sous-headers
         }
     }
 
