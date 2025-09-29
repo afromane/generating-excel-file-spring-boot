@@ -3,25 +3,16 @@ package com.afromane.exportToExcel.service.serviceImpl;
 import com.afromane.exportToExcel.model.PeopleReviewData;
 import com.afromane.exportToExcel.service.ExcelGeneratorService;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 @Service
 public class ExcelGeneratorServiceImpl implements ExcelGeneratorService {
@@ -35,8 +26,6 @@ public ByteArrayInputStream generatePeopleReviewReport(List<PeopleReviewData> da
     InputStream templateStream = new ClassPathResource("templates/single.xlsx").getInputStream();
     Workbook workbook = new XSSFWorkbook(templateStream);
     Sheet sheet = workbook.getSheetAt(0);
-
-    // Mettre à jour la date (cellule O1 → colonne 14, ligne 0-based)
 
     Row dateRow = sheet.getRow(0);
     if (dateRow != null) {
@@ -92,7 +81,6 @@ public ByteArrayInputStream generatePeopleReviewReport(List<PeopleReviewData> da
 
     return new ByteArrayInputStream(out.toByteArray());
 }
-
 
 
 }
